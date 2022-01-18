@@ -39,6 +39,7 @@ def run_when_strategy_not_hold(func):
 
 
 class Strategy(object):
+    # 绑定事件处理函数
     def __init__(self, event_bus, scope, ucontext):
         self._user_context = ucontext
         self._current_universe = set()
@@ -75,7 +76,7 @@ class Strategy(object):
             with ExecutionContext(EXECUTION_PHASE.ON_INIT):
                 with ModifyExceptionFromType(EXC_TYPE.USER_EXC):
                     self._init(self._user_context)
-
+        # 用户初始化完成
         Environment.get_instance().event_bus.publish_event(Event(EVENT.POST_USER_INIT))
 
     @run_when_strategy_not_hold

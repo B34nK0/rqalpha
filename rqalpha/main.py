@@ -127,6 +127,7 @@ def init_rqdatac(rqdatac_uri):
 
 
 def run(config, source_code=None, user_funcs=None):
+    # 初始化环境
     env = Environment(config)
     persist_helper = None
     init_succeed = False
@@ -139,6 +140,7 @@ def run(config, source_code=None, user_funcs=None):
         init_rqdatac(getattr(config.base, 'rqdatac_uri', None))
         system_log.debug("\n" + pformat(config.convert_to_dict()))
 
+        # 编译用户策略代码
         env.set_strategy_loader(init_strategy_loader(env, source_code, user_funcs, config))
         mod_handler.set_env(env)
         mod_handler.start_up()
@@ -148,6 +150,7 @@ def run(config, source_code=None, user_funcs=None):
         if env.price_board is None:
             from rqalpha.data.bar_dict_price_board import BarDictPriceBoard
             env.price_board = BarDictPriceBoard()
+        # 初始化数据代理
         env.set_data_proxy(DataProxy(env.data_source, env.price_board))
 
         _adjust_start_date(env.config, env.data_proxy)
@@ -165,7 +168,7 @@ def run(config, source_code=None, user_funcs=None):
         if env.portfolio is None:
             from rqalpha.portfolio import Portfolio
             env.set_portfolio(Portfolio(config.base.accounts, config.base.init_positions))
-
+        # 系统初始化完成事件发布
         env.event_bus.publish_event(Event(EVENT.POST_SYSTEM_INIT))
 
         scope = create_base_scope()
@@ -177,12 +180,14 @@ def run(config, source_code=None, user_funcs=None):
             enable_profiler(env, scope)
 
         ucontext = StrategyContext()
+        # 执行器
         executor = Executor(env)
 
         persist_helper = init_persist_helper(env, ucontext, executor, config)
+        # 初始化策略，将event_bus放到strategy类里可让其发布事件、监听事件
         user_strategy = Strategy(env.event_bus, scope, ucontext)
         env.user_strategy = user_strategy
-
+        # 策略运行前
         env.event_bus.publish_event(Event(EVENT.BEFORE_STRATEGY_RUN))
 
         if config.extra.context_vars:

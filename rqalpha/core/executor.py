@@ -35,26 +35,33 @@ class Executor(object):
         self._last_before_trading = convert_json_to_dict(state.decode('utf-8')).get("last_before_trading")
 
     def run(self, bar_dict):
+        # 策略参数
         conf = self._env.config.base
         for event in self._env.event_source.events(conf.start_date, conf.end_date, conf.frequency):
             if event.event_type == EVENT.TICK:
                 if self._ensure_before_trading(event):
+                    # 发布tick事件组
                     self._split_and_publish(event)
             elif event.event_type == EVENT.BAR:
                 if self._ensure_before_trading(event):
                     bar_dict.update_dt(event.calendar_dt)
                     event.bar_dict = bar_dict
+                    # 发布bar事件组
                     self._split_and_publish(event)
             elif event.event_type == EVENT.OPEN_AUCTION:
                 if self._ensure_before_trading(event):
                     bar_dict.update_dt(event.calendar_dt)
                     event.bar_dict = bar_dict
+                    # 发布集合竞价事件组
                     self._split_and_publish(event)
             elif event.event_type == EVENT.BEFORE_TRADING:
+                # 发布执行before_trading函数事件组
                 self._ensure_before_trading(event)
             elif event.event_type == EVENT.AFTER_TRADING:
+                # 发布执行after_trading函数事件组
                 self._split_and_publish(event)
             else:
+                # 还有SETTLEMENT事件组
                 self._env.event_bus.publish_event(event)
 
         # publish settlement after last day
@@ -82,6 +89,7 @@ class Executor(object):
         return False
 
     EVENT_SPLIT_MAP = {
+        # 事件组，每个事件都有对应的前、中、后，通知机制
         EVENT.BEFORE_TRADING: (EVENT.PRE_BEFORE_TRADING, EVENT.BEFORE_TRADING, EVENT.POST_BEFORE_TRADING),
         EVENT.BAR: (EVENT.PRE_BAR, EVENT.BAR, EVENT.POST_BAR),
         EVENT.TICK: (EVENT.PRE_TICK, EVENT.TICK, EVENT.POST_TICK),
@@ -89,7 +97,7 @@ class Executor(object):
         EVENT.SETTLEMENT: (EVENT.PRE_SETTLEMENT, EVENT.SETTLEMENT, EVENT.POST_SETTLEMENT),
         EVENT.OPEN_AUCTION: (EVENT.PRE_OPEN_AUCTION, EVENT.OPEN_AUCTION, EVENT.POST_OPEN_AUCTION),
     }
-
+     
     def _split_and_publish(self, event):
         if hasattr(event, "calendar_dt") and hasattr(event, "trading_dt"):
             self._env.update_time(event.calendar_dt, event.trading_dt)

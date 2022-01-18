@@ -290,7 +290,7 @@ class DayBarTask(ProgressedTask):
     def __call__(self, path, fields, **kwargs):
         raise NotImplementedError
 
-
+# 生成日线数据写入到hdf5文件
 class GenerateDayBarTask(DayBarTask):
     def __call__(self, path, fields, **kwargs):
         with h5py.File(path, 'w') as h5:
@@ -312,7 +312,7 @@ class GenerateDayBarTask(DayBarTask):
                 if i >= len(self._order_book_ids):
                     break
 
-
+# 更新日线数据到hdf5
 class UpdateDayBarTask(DayBarTask):
     def h5_has_valid_fields(self, h5, wanted_fields):
         obid_gen = (k for k in h5.keys())
@@ -385,7 +385,7 @@ def init_rqdatac_with_warnings_catch():
         # catch warning: rqdatac is already inited. Settings will be changed
         rqdatac.init()
 
-
+# 更新数据包到本地磁盘
 def update_bundle(path, create, enable_compression=False, concurrency=1):
     if create:
         _DayBarTask = GenerateDayBarTask

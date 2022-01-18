@@ -39,7 +39,7 @@ from .storage_interface import (AbstractCalendarStore, AbstractDateSet,
                                 AbstractInstrumentStore,
                                 AbstractSimpleFactorStore)
 
-
+# 交易所交易日历
 class ExchangeTradingCalendarStore(AbstractCalendarStore):
     def __init__(self, f):
         self._f = f
@@ -48,7 +48,7 @@ class ExchangeTradingCalendarStore(AbstractCalendarStore):
         # type: () -> pandas.DatetimeIndex
         return pandas.to_datetime([str(d) for d in np.load(self._f, allow_pickle=False)])
 
-
+# 合约基础信息
 class FutureInfoStore(object):
     COMMISSION_TYPE_MAP = {
         "by_volume": COMMISSION_TYPE.BY_VOLUME,
@@ -85,7 +85,7 @@ class FutureInfoStore(object):
                 raise NotImplementedError(_("unsupported future instrument {}").format(order_book_id))
             return self._future_info.setdefault(order_book_id, info)
 
-
+# 合约信息
 class InstrumentStore(AbstractInstrumentStore):
     def __init__(self, instruments, instrument_type):
         # type: (Iterable[Instrument], INSTRUMENT_TYPE) -> None
@@ -171,7 +171,7 @@ def h5_file(path, *args, mode="r", **kwargs):
         finally:
             h5.close()
 
-
+# 日线数据
 class DayBarStore(AbstractDayBarStore):
     DEFAULT_DTYPE = np.dtype([
         ('datetime', np.uint64),
@@ -202,11 +202,11 @@ class DayBarStore(AbstractDayBarStore):
             except KeyError:
                 return 20050104, 20050104
 
-
+# 期货数据
 class FutureDayBarStore(DayBarStore):
     DEFAULT_DTYPE = np.dtype(DayBarStore.DEFAULT_DTYPE.descr + [("open_interest", '<f8')])
 
-
+# 股利数据
 class DividendStore(AbstractDividendStore):
     def __init__(self, path):
         self._path = path
@@ -218,7 +218,7 @@ class DividendStore(AbstractDividendStore):
             except KeyError:
                 return None
 
-
+# 国债利率
 class YieldCurveStore:
     def __init__(self, path):
         with h5_file(path) as h5:

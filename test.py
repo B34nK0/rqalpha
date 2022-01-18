@@ -23,7 +23,7 @@ from six import iteritems
 import pandas as pd
 from pandas.testing import assert_frame_equal
 import numpy as np
-import coverage
+# import coverage
 
 from rqalpha import run, run_func
 
@@ -193,10 +193,10 @@ def run_unit_tests():
 
 
 if __name__ == "__main__":
-    if is_enable_coverage():
-        print("enable coverage")
-        cov = coverage.Coverage()
-        cov.start()
+    # if is_enable_coverage():
+        # print("enable coverage")
+        # cov = coverage.Coverage()
+        # cov.start()
 
     performance_path = None
     field_names = ["date_time", "time_spend"]

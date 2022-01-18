@@ -27,7 +27,7 @@ from rqalpha.utils.logger import system_log, user_log, user_system_log
 from rqalpha.core.global_var import GlobalVars
 from rqalpha.utils.i18n import gettext as _
 
-
+# 初始化环境
 class Environment(object):
     _env = None  # type: Environment
 

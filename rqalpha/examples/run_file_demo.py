@@ -3,6 +3,7 @@
 from rqalpha import run_file
 
 config = {
+  # 回测参数
   "base": {
     "start_date": "2016-06-01",
     "end_date": "2016-12-01",
@@ -14,6 +15,7 @@ config = {
   "extra": {
     "log_level": "verbose",
   },
+  # 自定义mod
   "mod": {
     "sys_analyser": {
       "enabled": True,
