@@ -37,6 +37,7 @@ class Executor(object):
     def run(self, bar_dict):
         # 策略参数
         conf = self._env.config.base
+        # 在加载mod的时候会往环境设置事件源，这里是遍历事件源里的事件进行推送
         for event in self._env.event_source.events(conf.start_date, conf.end_date, conf.frequency):
             if event.event_type == EVENT.TICK:
                 if self._ensure_before_trading(event):

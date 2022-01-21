@@ -33,7 +33,9 @@ def mod_config_value_parse(value):
 
 
 def inject_mod_commands():
+    # 加载mod_config.yml
     from rqalpha.utils.config import get_mod_conf
+    # 基础mod列表
     from rqalpha.mod import SYSTEM_MOD_LIST
     from rqalpha.utils.package_helper import import_mod
     mod_config = get_mod_conf()

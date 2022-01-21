@@ -45,6 +45,8 @@ class Portfolio(object, metaclass=PropertyReprMeta):
         "total_value", "unit_net_value", "daily_pnl", "daily_returns", "total_returns", "annualized_returns", "accounts"
     )
 
+    # starting_cash 多账号
+    # init_positions 账号持仓，根据持仓类型分配到对应的账号上，区分股票、期货等
     def __init__(self, starting_cash, init_positions):
         # type: (Dict[str, float], List[Tuple[str, int]]) -> Portfolio
         self._static_unit_net_value = 1

@@ -137,6 +137,7 @@ def run(config, source_code=None, user_funcs=None):
         # avoid register handlers everytime
         # when running in ipython
         set_loggers(config)
+        # 链接rqdata
         init_rqdatac(getattr(config.base, 'rqdatac_uri', None))
         system_log.debug("\n" + pformat(config.convert_to_dict()))
 
@@ -145,20 +146,24 @@ def run(config, source_code=None, user_funcs=None):
         mod_handler.set_env(env)
         mod_handler.start_up()
 
+        # 数据源，配置里可设置期货标的的手续费等信息
         if not env.data_source:
+            # data_bundle_path数据源存储文件路径
             env.set_data_source(BaseDataSource(config.base.data_bundle_path, getattr(config.base, "future_info", {})))
+
         if env.price_board is None:
             from rqalpha.data.bar_dict_price_board import BarDictPriceBoard
             env.price_board = BarDictPriceBoard()
         # 初始化数据代理
         env.set_data_proxy(DataProxy(env.data_source, env.price_board))
-
+        # 调整配置时间段内真正可交易的时间段
         _adjust_start_date(env.config, env.data_proxy)
 
         ctx = ExecutionContext(const.EXECUTION_PHASE.GLOBAL)
         ctx._push()
 
         # FIXME
+        # 日期+时间
         start_dt = datetime.datetime.combine(config.base.start_date, datetime.datetime.min.time())
         env.calendar_dt = start_dt
         env.trading_dt = start_dt
@@ -167,12 +172,14 @@ def run(config, source_code=None, user_funcs=None):
         assert env.event_source is not None
         if env.portfolio is None:
             from rqalpha.portfolio import Portfolio
+            # 账号组形成投资组合
             env.set_portfolio(Portfolio(config.base.accounts, config.base.init_positions))
         # 系统初始化完成事件发布
         env.event_bus.publish_event(Event(EVENT.POST_SYSTEM_INIT))
-
+        # 拷贝user_module的dict
         scope = create_base_scope()
         scope.update({"g": env.global_vars})
+        # 获取策略提供的api
         scope.update(get_strategy_apis())
         scope = env.strategy_loader.load(scope)
 

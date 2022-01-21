@@ -18,8 +18,10 @@ from rqalpha.cmds import cli
 
 
 def entry_point():
+    # 根据config配置加载mod
     from rqalpha.mod.utils import inject_mod_commands
     inject_mod_commands()
+
     cli(obj={})
 
 
