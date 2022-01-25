@@ -148,15 +148,19 @@ class StrategyContext(object):
             if key.startswith("_"):
                 continue
             try:
+                # 序列化
                 dict_data[key] = pickle.dumps(value)
             except Exception as e:
                 user_system_log.warn("context.{} can not pickle", key)
+                # 序列化
         return pickle.dumps(dict_data)
 
     def set_state(self, state):
+        # 反序列化
         dict_data = pickle.loads(state)
         for key, value in dict_data.items():
             try:
+                # 反序列化
                 self.__dict__[key] = pickle.loads(value)
                 system_log.debug("restore context.{} {}", key, type(self.__dict__[key]))
             except Exception as e:

@@ -103,6 +103,7 @@ def run_file(strategy_file_path, config=None):
                 "strategy_file": strategy_file_path
             }
     config = parse_config(config)
+    # 调用设置的清缓存函数
     clear_all_cached_functions()
     return main.run(config)
 

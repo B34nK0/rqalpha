@@ -26,6 +26,7 @@ from rqalpha.utils.logger import system_log
 class Executor(object):
     def __init__(self, env):
         self._env = env
+        # 最新交易日
         self._last_before_trading = None
 
     def get_state(self):
@@ -71,10 +72,12 @@ class Executor(object):
 
     def _ensure_before_trading(self, event):
         # return True if before_trading won't run this time
+        # 为true的话 发布tick事件组、bar事件组、集合竞价事件组
         if self._last_before_trading == event.trading_dt.date() or self._env.config.extra.is_hold:
             return True
         if self._last_before_trading:
             # don't publish settlement on first day
+            # 获取前一个交易日
             previous_trading_date = self._env.data_proxy.get_previous_trading_date(event.trading_dt).date()
             if self._env.trading_dt.date() != previous_trading_date:
                 self._env.update_time(
@@ -84,7 +87,10 @@ class Executor(object):
             system_log.debug("publish settlement events with calendar_dt={}, trading_dt={}".format(
                 self._env.calendar_dt, self._env.trading_dt
             ))
+            # 清算事件
             self._split_and_publish(Event(EVENT.SETTLEMENT))
+
+        # 当前交易日
         self._last_before_trading = event.trading_dt.date()
         self._split_and_publish(Event(EVENT.BEFORE_TRADING, calendar_dt=event.calendar_dt, trading_dt=event.trading_dt))
         return False

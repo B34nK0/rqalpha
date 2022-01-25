@@ -25,12 +25,16 @@ class PersistHelper(object):
         self._objects = OrderedDict()
         self._last_state = {}
         self._persist_provider = persist_provider
+        # 如果是实时，那么需要监听
         if persist_mode == PERSIST_MODE.REAL_TIME:
             event_bus.add_listener(EVENT.POST_BEFORE_TRADING, self.persist)
             event_bus.add_listener(EVENT.POST_AFTER_TRADING, self.persist)
             event_bus.add_listener(EVENT.POST_BAR, self.persist)
+            # 立即持久化
             event_bus.add_listener(EVENT.DO_PERSIST, self.persist)
+            # 结算
             event_bus.add_listener(EVENT.POST_SETTLEMENT, self.persist)
+            # 立即重载
             event_bus.add_listener(EVENT.DO_RESTORE, self.restore)
 
     def persist(self, *_):
@@ -49,6 +53,7 @@ class PersistHelper(object):
                 self._last_state[key] = md5
 
     def register(self, key, obj):
+        # 不可重复注册持久化对象
         if key in self._objects:
             raise RuntimeError('duplicated persist key found: {}'.format(key))
         self._objects[key] = obj

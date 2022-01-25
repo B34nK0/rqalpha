@@ -325,18 +325,22 @@ class Account:
             self._frozen_cash -= order.unfilled_quantity / order.quantity * order.init_frozen_cash
         else:
             self._frozen_cash -= order.init_frozen_cash
-
+# 成交单
     def apply_trade(self, trade, order=None):
         # type: (Trade, Optional[Order]) -> None
         if trade.exec_id in self._backward_trade_set:
             return
+            # 对应的订单
         order_book_id = trade.order_book_id
         if order and trade.position_effect != POSITION_EFFECT.MATCH:
             if trade.last_quantity != order.quantity:
+            # 部分成交释放订单的冻结资金
                 self._frozen_cash -= trade.last_quantity / order.quantity * order.init_frozen_cash
             else:
+                # 全部成交释放订单的冻结资金
                 self._frozen_cash -= order.init_frozen_cash
         if trade.position_effect == POSITION_EFFECT.MATCH:
+            # 配对单
             delta_cash = self._get_or_create_pos(
                 order_book_id, POSITION_DIRECTION.LONG
             ).apply_trade(trade) + self._get_or_create_pos(
@@ -355,19 +359,24 @@ class Account:
         else:
             return chain(*[six.itervalues(p) for p in six.itervalues(self._positions)])
 
+# 获取订单对应的持仓，或者新增持仓
     def _get_or_create_pos(self, order_book_id, direction, init_quantity=0):
         # type: (str, Union[str, POSITION_DIRECTION], Optional[int]) -> Position
+        # 当前订单没有对应的持仓
         if order_book_id not in self._positions:
+            # 根据订单方向确持仓方向数量
             if direction == POSITION_DIRECTION.LONG:
                 long_init_position, short_init_position = init_quantity, 0
             else:
                 long_init_position, short_init_position = 0, init_quantity
 
+            # 构建持仓
             positions = self._positions.setdefault(order_book_id, {
                 POSITION_DIRECTION.LONG: Position(order_book_id, POSITION_DIRECTION.LONG, long_init_position),
                 POSITION_DIRECTION.SHORT: Position(order_book_id, POSITION_DIRECTION.SHORT, short_init_position)
             })
         else:
+            # 已有持仓
             positions = self._positions[order_book_id]
         return positions[direction]
 

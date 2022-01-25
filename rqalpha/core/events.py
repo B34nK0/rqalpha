@@ -149,7 +149,7 @@ class EVENT(Enum):
     # 成交
     # trade(account, trade, order)
     TRADE = 'trade'
-
+    # 在线绩效情况
     ON_LINE_PROFILER_RESULT = 'on_line_profiler_result'
 
     # persist immediately

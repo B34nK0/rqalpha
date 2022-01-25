@@ -79,19 +79,29 @@ def init_persist_helper(env, ucontext, executor, config):
     if persist_provider is None:
         raise RuntimeError(_(u"Missing persist provider. You need to set persist_provider before use persist"))
     persist_helper = PersistHelper(persist_provider, env.event_bus, config.base.persist_mode)
-    for key, obj in chain([
+    for key, obj in chain(
+        # 
+        [
         ('user_context', ucontext),
         ('global_vars', env.global_vars),
         ('universe', env._universe),
         ('portfolio', env.portfolio),
         ('executor', executor),
-    ], ((key, obj) for key, obj in [
+    ],
+    # 
+     ((key, obj) for key, obj in [
         ('event_source', env.event_source),
         ('broker', env.broker)
-    ] if isinstance(obj, Persistable)), ((
-        "mod_{}".format(name), mod
-    ) for name, mod in env.mod_dict.items() if isinstance(mod, Persistable))):
+        # 检测对象是否为持久化类
+    ] if isinstance(obj, Persistable)),
+    # 
+     (
+         ("mod_{}".format(name), mod) 
+        for name, mod in env.mod_dict.items() if isinstance(mod, Persistable)
+    )
+    ):
         persist_helper.register(key, obj)
+        # 运行框架的持久化层
     env.set_persist_helper(persist_helper)
     return persist_helper
 
@@ -154,7 +164,7 @@ def run(config, source_code=None, user_funcs=None):
         if env.price_board is None:
             from rqalpha.data.bar_dict_price_board import BarDictPriceBoard
             env.price_board = BarDictPriceBoard()
-        # 初始化数据代理
+        # 初始化数据代理，数据源（已确认标的文件）
         env.set_data_proxy(DataProxy(env.data_source, env.price_board))
         # 调整配置时间段内真正可交易的时间段
         _adjust_start_date(env.config, env.data_proxy)
@@ -182,33 +192,35 @@ def run(config, source_code=None, user_funcs=None):
         # 获取策略提供的api
         scope.update(get_strategy_apis())
         scope = env.strategy_loader.load(scope)
-
+        # 是否启用性能分析
         if config.extra.enable_profiler:
             enable_profiler(env, scope)
-
+        # 策略上下文
         ucontext = StrategyContext()
-        # 执行器
+        # 执行器，用于推送事件源事件
         executor = Executor(env)
-
+        # 持久化
         persist_helper = init_persist_helper(env, ucontext, executor, config)
         # 初始化策略，将event_bus放到strategy类里可让其发布事件、监听事件
         user_strategy = Strategy(env.event_bus, scope, ucontext)
         env.user_strategy = user_strategy
         # 策略运行前
         env.event_bus.publish_event(Event(EVENT.BEFORE_STRATEGY_RUN))
-
+        # 可预定义策略参数到策略上下文，即策略的可扩展参数
         if config.extra.context_vars:
             for k, v in config.extra.context_vars.items():
                 if isinstance(v, RqAttrDict):
                     v = v.__dict__
                 setattr(ucontext, k, v)
 
+        # 初始化策略、推送事件
         if persist_helper:
             with LogCapture(user_log) as log_capture:
                 user_strategy.init()
         else:
             user_strategy.init()
 
+        # 如果进行持久化：推送系统重加载事件
         if persist_helper:
             env.event_bus.publish_event(Event(EVENT.BEFORE_SYSTEM_RESTORED))
             restored_obj_state = persist_helper.restore(None)
@@ -224,11 +236,14 @@ def run(config, source_code=None, user_funcs=None):
             env.event_bus.publish_event(Event(EVENT.POST_SYSTEM_RESTORED))
 
         init_succeed = True
-
+        # 通过数据代理获取行情bar
         bar_dict = BarMap(env.data_proxy, config.base.frequency)
+        # 执行器开始推送事件
         executor.run(bar_dict)
+        # 策略运行完成
         env.event_bus.publish_event(Event(EVENT.POST_STRATEGY_RUN))
 
+        # 输出性能分析结果
         if env.profile_deco:
             output_profile_result(env)
         release_print(scope)
