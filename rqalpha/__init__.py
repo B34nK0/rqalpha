@@ -32,7 +32,7 @@ __all__ = [
     '__version__',
 ]
 
-
+# 加载ipython用于执行ipython cell
 def load_ipython_extension(ipython):
     """call by ipython"""
     from rqalpha.mod.utils import inject_mod_commands
@@ -40,7 +40,7 @@ def load_ipython_extension(ipython):
 
     ipython.register_magic_function(run_ipython_cell, 'line_cell', 'rqalpha')
 
-
+# 加载配置进行运行
 def run(config, source_code=None):
     # [Deprecated]
     from rqalpha.utils.config import parse_config
@@ -49,7 +49,7 @@ def run(config, source_code=None):
     config = parse_config(config, source_code=source_code)
     return main.run(config, source_code=source_code)
 
-
+# 运行ipython cell
 def run_ipython_cell(line, cell=None):
     from rqalpha.cmds.run import run
     from rqalpha.utils.functools import clear_all_cached_functions
@@ -62,7 +62,7 @@ def run_ipython_cell(line, cell=None):
     except SystemExit as e:
         pass
 
-
+# 运行策略文件
 def run_file(strategy_file_path, config=None):
     # type: (str, Optional[dict]) -> dict
     """
@@ -107,7 +107,7 @@ def run_file(strategy_file_path, config=None):
     clear_all_cached_functions()
     return main.run(config)
 
-
+# 运行策略代码
 def run_code(code, config=None):
     # type: (str, Optional[dict]) -> dict
     """
@@ -152,7 +152,7 @@ def run_code(code, config=None):
     clear_all_cached_functions()
     return main.run(config, source_code=code)
 
-
+# 运行函数
 def run_func(**kwargs):
     """
     传入约定函数和策略配置运行回测。约定函数详见 API 手册约定函数部分，可用的配置项详见参数配置部分。

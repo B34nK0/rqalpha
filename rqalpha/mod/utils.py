@@ -37,6 +37,7 @@ def inject_mod_commands():
     from rqalpha.utils.config import get_mod_conf
     # 基础mod列表
     from rqalpha.mod import SYSTEM_MOD_LIST
+    # importlib包管理进行模块加载
     from rqalpha.utils.package_helper import import_mod
     mod_config = get_mod_conf()
 

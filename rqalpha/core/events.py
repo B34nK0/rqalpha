@@ -29,7 +29,7 @@ class EventBus(object):
     def __init__(self):
         self._listeners = defaultdict(list)
         self._user_listeners = defaultdict(list)
-
+    # 设置事件监听者
     def add_listener(self, event_type, listener, user=False):
         """
         为指定的事件类型注册处理函数
@@ -39,7 +39,7 @@ class EventBus(object):
 
     def prepend_listener(self, event_type, listener, user=False):
         (self._user_listeners if user else self._listeners)[event_type].insert(0, listener)
-
+    # 发布事件，获取监听者并调用监听者的回调
     def publish_event(self, event):
         for listener in self._listeners[event.event_type]:
             # 如果返回 True ，那么消息不再传递下去

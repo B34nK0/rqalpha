@@ -141,6 +141,7 @@ def run(config, source_code=None, user_funcs=None):
     env = Environment(config)
     persist_helper = None
     init_succeed = False
+    # mod管理
     mod_handler = ModHandler()
 
     try:
@@ -154,6 +155,7 @@ def run(config, source_code=None, user_funcs=None):
         # 编译用户策略代码
         env.set_strategy_loader(init_strategy_loader(env, source_code, user_funcs, config))
         mod_handler.set_env(env)
+        # 调用扩展mod的start_up方法进行启动
         mod_handler.start_up()
 
         # 数据源，配置里可设置期货标的的手续费等信息

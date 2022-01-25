@@ -31,6 +31,7 @@ class SimulationMod(AbstractMod):
     def __init__(self):
         self._env = None
 
+    # main里进行加载
     def start_up(self, env, mod_config):
         self._env = env
         if env.config.base.run_type == RUN_TYPE.LIVE_TRADING:
@@ -63,15 +64,18 @@ class SimulationMod(AbstractMod):
             user_system_log.warn(_(u"matching_type = 'next_bar' is abandoned when frequency == '1d',"
                                    u"Current matching_type is 'current_bar'."))
 
+        # 设置订单柜台
         if mod_config.signal:
             env.set_broker(SignalBroker(env, mod_config))
         else:
             env.set_broker(SimulationBroker(env, mod_config))
 
+        # 设置账户手续费
         if mod_config.management_fee:
             env.event_bus.add_listener(EVENT.POST_SYSTEM_INIT, self.register_management_fee_calculator)
 
         event_source = SimulationEventSource(env)
+        # 在main里进行执行时推送事件源
         env.set_event_source(event_source)
 
     def tear_down(self, code, exception=None):

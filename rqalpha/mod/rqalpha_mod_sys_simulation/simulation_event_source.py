@@ -32,6 +32,7 @@ class SimulationEventSource(AbstractEventSource):
         self._env = env
         self._config = env.config
         self._universe_changed = False
+        # 股票池发生变化
         self._env.event_bus.add_listener(EVENT.POST_UNIVERSE_CHANGED, self._on_universe_changed)
 
         self._get_day_bar_dt = lambda date: date.replace(hour=15, minute=0)
